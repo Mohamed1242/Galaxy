@@ -1,122 +1,98 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useState, useEffect } from 'react';
+import { BackgroundCanvas } from './components/BackgroundCanvas';
+import { BackgroundMusic } from './components/BackgroundMusic';
+import { NavigationDots } from './components/NavigationDots';
+import { WelcomeHero } from './components/WelcomeHero';
+import { InfiniteGrid } from './components/InfiniteGrid';
+import { RomanticQuote } from './components/RomanticQuote';
+import { SwipingCards } from './components/SwipingCards';
+import { VoiceRecordPlayer } from './components/VoiceRecordPlayer';
+import { FlippingBook } from './components/FlippingBook';
+import { Heart } from 'lucide-react';
+import gsap from 'gsap';
+import { ScrollTrigger } from 'gsap/ScrollTrigger';
 
-function App() {
-  const [count, setCount] = useState(0)
+gsap.registerPlugin(ScrollTrigger);
+
+export function App() {
+  const [isVoicePlaying, setIsVoicePlaying] = useState(false);
+
+  // Focus and center effect on scroll using GSAP ScrollTrigger
+  useEffect(() => {
+    const sections = document.querySelectorAll<HTMLElement>('.story-section');
+
+    sections.forEach((section) => {
+      ScrollTrigger.create({
+        trigger: section,
+        start: 'top 60%',
+        end: 'bottom 40%',
+        onEnter: () => {
+          gsap.to(section, { opacity: 1, scale: 1, duration: 0.5, ease: 'power2.out' });
+        },
+        onLeave: () => {
+          gsap.to(section, { opacity: 0.85, scale: 0.98, duration: 0.5, ease: 'power2.out' });
+        },
+        onEnterBack: () => {
+          gsap.to(section, { opacity: 1, scale: 1, duration: 0.5, ease: 'power2.out' });
+        },
+        onLeaveBack: () => {
+          gsap.to(section, { opacity: 0.85, scale: 0.98, duration: 0.5, ease: 'power2.out' });
+        },
+      });
+    });
+
+    return () => {
+      ScrollTrigger.getAll().forEach((trigger) => trigger.kill());
+    };
+  }, []);
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.tsx</code> and save to test <code>HMR</code>
+    <div className="relative min-h-screen text-neutral-900 selection:bg-rose-200 selection:text-rose-900 overflow-x-hidden">
+      {/* Cotton candy sides with white center background + falling rose petals */}
+      <BackgroundCanvas />
+
+      {/* Floating Ambient Music Player */}
+      <BackgroundMusic isVoicePlaying={isVoicePlaying} />
+
+      {/* Floating Section Navigation Dots */}
+      <NavigationDots />
+
+      {/* Main Story Content: Scroll Centered Sections */}
+      <main className="relative z-20 flex flex-col items-center w-full max-w-7xl mx-auto">
+        {/* Section 1: Welcome Section */}
+        <WelcomeHero />
+
+        {/* Section 2: Infinite Grid (2 Rows with 8 Images) */}
+        <InfiniteGrid />
+
+        {/* Section 3: 2-Line Romantic Text Section */}
+        <RomanticQuote />
+
+        {/* Section 4: Swiping Cards with 8 Images */}
+        <SwipingCards />
+
+        {/* Section 5: Voice Record Player Sample */}
+        <VoiceRecordPlayer onVoicePlayingChange={setIsVoicePlaying} />
+
+        {/* Section 6: Flipping Book with 7 Images */}
+        <FlippingBook />
+
+        {/* Romantic Footer Signoff */}
+        <footer className="w-full py-16 px-4 text-center border-t border-rose-200/60 mt-12 relative z-20">
+          <div className="inline-flex items-center gap-2 text-rose-500 mb-3">
+            <Heart size={16} className="fill-rose-500 animate-pulse" />
+            <span className="font-romantic text-lg sm:text-xl font-semibold tracking-wide text-neutral-800">
+              Forever Yours
+            </span>
+            <Heart size={16} className="fill-rose-500 animate-pulse" />
+          </div>
+          <p className="text-xs sm:text-sm text-neutral-500 font-sans tracking-wide">
+            Designed with all my love for the prettiest girl in the world.
           </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
-
-      <div className="ticks"></div>
-
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
-
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+        </footer>
+      </main>
+    </div>
+  );
 }
 
-export default App
+export default App;
