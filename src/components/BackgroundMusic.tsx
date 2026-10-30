@@ -11,19 +11,23 @@ export const BackgroundMusic: React.FC<BackgroundMusicProps> = ({ isVoicePlaying
   const [volume, setVolume] = useState(0.55);
   const [isExpanded, setIsExpanded] = useState(false);
 
+  // Sync with global romanticAudio engine
   useEffect(() => {
-    if (isVoicePlaying && isPlaying) {
-      romanticAudio.setBackgroundVolume(0.08); // softly duck volume
-    } else if (!isVoicePlaying && isPlaying) {
-      romanticAudio.setBackgroundVolume(volume);
-    }
-  }, [isVoicePlaying, isPlaying, volume]);
-
-  const togglePlay = () => {
-    const nextState = romanticAudio.toggleBackgroundMusic((playing) => {
+    const unsubscribe = romanticAudio.subscribeBgState((playing) => {
       setIsPlaying(playing);
     });
-    setIsPlaying(nextState);
+    return unsubscribe;
+  }, []);
+
+  // When voice note starts, automatically pause background song
+  useEffect(() => {
+    if (isVoicePlaying) {
+      romanticAudio.pauseBackgroundMusic();
+    }
+  }, [isVoicePlaying]);
+
+  const togglePlay = () => {
+    romanticAudio.toggleBackgroundMusic();
   };
 
   const handleVolumeChange = (e: React.ChangeEvent<HTMLInputElement>) => {

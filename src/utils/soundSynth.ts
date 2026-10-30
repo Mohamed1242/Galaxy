@@ -8,6 +8,20 @@ class RomanticAudioEngine {
   private isBgPlaying = false;
   private isVoicePlaying = false;
   private bgVolume = 0.6;
+  private bgListeners: Set<(isPlaying: boolean) => void> = new Set();
+
+  public subscribeBgState(listener: (isPlaying: boolean) => void): () => void {
+    this.bgListeners.add(listener);
+    listener(this.isBgPlaying);
+    return () => {
+      this.bgListeners.delete(listener);
+    };
+  }
+
+  private notifyBgListeners(isPlaying: boolean) {
+    this.isBgPlaying = isPlaying;
+    this.bgListeners.forEach((fn) => fn(isPlaying));
+  }
 
   private getBgAudio(): HTMLAudioElement {
     if (!this.bgAudio) {
@@ -31,7 +45,7 @@ class RomanticAudioEngine {
   private getVoiceAudio(): HTMLAudioElement {
     if (!this.voiceAudio) {
       this.voiceAudio = new Audio(this.voiceUrl);
-      this.voiceAudio.volume = 0.9;
+      this.voiceAudio.volume = 0.95;
       this.voiceAudio.preload = 'auto';
 
       this.voiceAudio.onerror = () => {
@@ -46,26 +60,36 @@ class RomanticAudioEngine {
     return this.voiceAudio;
   }
 
-  public toggleBackgroundMusic(onStateChange?: (isPlaying: boolean) => void): boolean {
+  public pauseBackgroundMusic(): void {
+    if (this.bgAudio) {
+      this.bgAudio.pause();
+    }
+    this.notifyBgListeners(false);
+  }
+
+  public toggleBackgroundMusic(): boolean {
     const audio = this.getBgAudio();
+
     if (this.isBgPlaying) {
       audio.pause();
-      this.isBgPlaying = false;
-      if (onStateChange) onStateChange(false);
+      this.notifyBgListeners(false);
       return false;
     } else {
+      // If voice is playing, stop it first so they never clash
+      if (this.isVoicePlaying) {
+        this.stopVoiceRecord();
+      }
+
       audio.volume = this.bgVolume;
       const playPromise = audio.play();
       if (playPromise !== undefined) {
         playPromise
           .then(() => {
-            this.isBgPlaying = true;
-            if (onStateChange) onStateChange(true);
+            this.notifyBgListeners(true);
           })
           .catch((err) => {
             console.warn('Audio play restricted by browser policy:', err);
-            this.isBgPlaying = false;
-            if (onStateChange) onStateChange(false);
+            this.notifyBgListeners(false);
           });
       }
       return true;
@@ -87,6 +111,9 @@ class RomanticAudioEngine {
     onProgress: (percent: number, currentSec: number, totalDuration: number) => void,
     onEnded: () => void
   ) {
+    // STOP background music immediately when voice starts!
+    this.pauseBackgroundMusic();
+
     const audio = this.getVoiceAudio();
 
     if (this.isVoicePlaying) {
